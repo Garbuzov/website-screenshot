@@ -1,6 +1,6 @@
 /* Variables for working */
 var screenshot, contentURL = '';
-var linksList = [], currentIndex = 0, currentTab, shooting = false;
+var linksList = [], currentIndex = 0, currentTab;
 
 chrome.runtime.onMessage.addListener(function(request, sender, callback) {
   switch(request.msg) {
@@ -20,17 +20,16 @@ chrome.runtime.onMessage.addListener(function(request, sender, callback) {
     }
 });
 
-/*  If loaded needed page start to shoot */
-/*
-chrome.webNavigation.onCompleted.addListener(function(data){            
-    if (currentTab && data.tabId == currentTab.id && data.url == linksList[currentIndex] && !shooting) {
-
-       screenLink(currentTab);
-    } else {
-        console.log(currentTab, data);
+/**
+ * Listen for created tabs and start screen if they need to be screened
+ */
+chrome.tabs.onUpdated.addListener(function(tabId , info, tab) {
+    if (currentTab && info.status == "complete" && tabId === currentTab.id) {
+        screenLink(currentTab);
     }
 });
-*/
+
+
 /**
  * Start capturing process
  */
@@ -46,13 +45,6 @@ function startCapturing(links) {
  function createTab(link) {
     chrome.tabs.create({url: link}, function(tab){
         currentTab = tab;
-        //console.log('curTabCreated: ', tab);
-        if (tab.status !== 'complete') {
-            console.log('wait');
-            setTimeout(function(){screenLink(tab)}, 1000);
-        } else {
-            screenLink(tab);
-        }
     });
 }
 
@@ -60,12 +52,9 @@ function startCapturing(links) {
  * Proceed capturing process
  */
  function proceedCapturing() {
-    
-    shooting = false;
-    
-    console.log('removeTab ', currentTab);
-
-    chrome.tabs.remove(currentTab.id);
+    if (currentTab) {
+        chrome.tabs.remove(currentTab.id);
+    }
     currentIndex++;
 
     if (currentIndex < linksList.length) {
@@ -84,7 +73,6 @@ function startCapturing(links) {
  * Screen Link Task
  */ 
 function screenLink(tab) {
-    shooting = true; 
     chrome.tabs.update(tab.id, {active: true}, function(){
         chrome.tabs.executeScript(tab.id, {file: 'page.js'}, function() {     
           sendScrollMessage(tab);

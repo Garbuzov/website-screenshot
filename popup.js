@@ -41,13 +41,9 @@ function testURLMatches(url) {
 // start doing stuff immediately! - including error cases
 //
 
-$('#form').submit(function(event){
-
+$('#shotList').click(function(){
     var links =  $('#pages').val().split("\n");
-
     chrome.runtime.sendMessage({"msg": "start", "url" : links});
-
-    event.preventDefault();
 })
 
 $('#shotThisPage').click(function(){
