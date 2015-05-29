@@ -43,12 +43,9 @@ function testURLMatches(url) {
 
 $('#form').submit(function(event){
 
-    var link = $('#pageUrl').val();
     var links =  $('#pages').val().split("\n");
 
-    chrome.runtime.sendMessage({"msg": "start", "url" : links}, function(){
-        chrome.runtime.sendMessage({"msg": 'ready'});
-    });
+    chrome.runtime.sendMessage({"msg": "start", "url" : links});
 
     event.preventDefault();
 })

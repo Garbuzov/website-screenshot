@@ -20,21 +20,41 @@ chrome.runtime.onMessage.addListener(function(request, sender, callback) {
     }
 });
 
+/*  If loaded needed page start to shoot */
+/*
+chrome.webNavigation.onCompleted.addListener(function(data){            
+    if (currentTab && data.tabId == currentTab.id && data.url == linksList[currentIndex] && !shooting) {
+
+       screenLink(currentTab);
+    } else {
+        console.log(currentTab, data);
+    }
+});
+*/
 /**
  * Start capturing process
  */
 function startCapturing(links) {
     linksList = links;
     createTab(linksList[0]);
+}
 
-    chrome.webNavigation.onCompleted.addListener(function(data){        
-        /*  If loaded needed page start to shoot */
-        if (currentTab && data.tabId == currentTab.id && data.url == currentTab.url && !shooting) {
-           screenLink(currentTab);
+
+/**
+ * Create tab
+ */
+ function createTab(link) {
+    chrome.tabs.create({url: link}, function(tab){
+        currentTab = tab;
+        //console.log('curTabCreated: ', tab);
+        if (tab.status !== 'complete') {
+            console.log('wait');
+            setTimeout(function(){screenLink(tab)}, 1000);
+        } else {
+            screenLink(tab);
         }
     });
 }
-
 
 /**
  * Proceed capturing process
@@ -42,6 +62,9 @@ function startCapturing(links) {
  function proceedCapturing() {
     
     shooting = false;
+    
+    console.log('removeTab ', currentTab);
+
     chrome.tabs.remove(currentTab.id);
     currentIndex++;
 
@@ -55,18 +78,13 @@ function startCapturing(links) {
     }
  }
 
-function createTab(link) {
-    chrome.tabs.create({url: link}, function(tab){
-        currentTab = tab;
-    });
-}
+
 
 /**
  * Screen Link Task
  */ 
 function screenLink(tab) {
-    shooting = true;
- 
+    shooting = true; 
     chrome.tabs.update(tab.id, {active: true}, function(){
         chrome.tabs.executeScript(tab.id, {file: 'page.js'}, function() {     
           sendScrollMessage(tab);
