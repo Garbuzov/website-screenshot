@@ -1,0 +1,29 @@
+{
+  "name": "Screenshot links",
+  "version": "0.0.1",
+  "manifest_version": 2,
+  "description": "Screen capture from list of links!",
+  "browser_action": {
+    "default_icon": "icon.png",
+    "default_popup": "popup.html"
+  },
+  "background": {    
+    "scripts" : ["background.js"],
+    "persistent" : true
+   },
+  "permissions": [ 
+    "activeTab", 
+    "<all_urls>",
+    "tabs",
+    "notifications",
+    "http://*/*",
+    "https://*/*", 
+    "downloads",
+    "background"
+  ],
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  }
+}
