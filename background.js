@@ -20,6 +20,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, callback) {
     }
 });
 
+
 /**
  * Listen for created tabs and start screen if they need to be screened
  */
@@ -55,9 +56,8 @@ function startCapturing(links) {
     if (currentTab) {
         chrome.tabs.remove(currentTab.id);
     }
-    currentIndex++;
-
-    if (currentIndex < linksList.length) {
+    
+    if (++currentIndex < linksList.length) {
         // The process of shooting will start on loading the content
         createTab(linksList[currentIndex]);
     } else {
@@ -175,6 +175,11 @@ function saveImage(tabId) {
     // come up with file-system size with a little buffer
     var size = blob.size + (1024/2);
 
+    var domainRegExp = /^(?:https?:\/\/)?(?:www\.)?([^\/]+)/igm;
+    var dir = contentURL.split('?')[0].split('#')[0];
+    dir = dir.match(domainRegExp)[0];
+    dir = dir.replace(/^https?:\/\//, '');
+
     // come up with a filename
     var name = contentURL.split('?')[0].split('#')[0];
     if (name) {
@@ -189,11 +194,13 @@ function saveImage(tabId) {
         name = '';
     }
 
+
+
     function onwriteend(e) {
 
         chrome.downloads.download({
             url: 'filesystem:chrome-extension://' + chrome.i18n.getMessage('@@extension_id') + '/temporary/' + name,
-            filename: name
+            filename: dir + '/' + name
         }, function(){
             proceedCapturing(); // proceed to the next link if exist
         });
@@ -207,7 +214,6 @@ function saveImage(tabId) {
 
     // create a blob for writing to a file
     window.webkitRequestFileSystem(window.TEMPORARY, size, function(fs){        
-
         fs.root.getFile(name, {create: true}, function(fileEntry) {
             fileEntry.createWriter(function(fileWriter) {
                 fileWriter.onwriteend = onwriteend;
