@@ -16,8 +16,9 @@
 
         label {
           display: block;
-          color: #111;
-          font-weight: bold;         
+          color: #FF9B00;
+          font-weight: bold;
+          font-size: 18px;        
         }
 
         input {
@@ -27,14 +28,18 @@
 
         textarea {
           width: 100%;
-          height: 470px;
-          margin: 3px 0 10px;
+          height: 140px;
+          margin: 10px 0;
+          font-family: Arial, sans-serif;
+          box-shadow: inset 0 -3px 5px rgba(0,0,0,0.2);
         }
 
-        button {
-          float: right;
+        button {         
           margin-bottom: 10px;
           font-size: 15px;
+          border: 0;
+
+
         }
 
         a {
@@ -45,9 +50,8 @@
         a:active { color: #000; }
 
         #wrap {
-            width: 470px;
-            height: 506px;
-            padding-top: 9px;
+            width: 470px;            
+            padding: 10px;
             font-size: 12px;
             color: #888;
         }
@@ -74,6 +78,33 @@
             background: #fff url(loader.gif) scroll no-repeat center right;
         }
         p { word-wrap: break-word; }
+        .btn {
+          background: #ffa647;
+          background-image: -webkit-linear-gradient(top, #ffa647, #e66400);
+          background-image: -moz-linear-gradient(top, #ffa647, #e66400);
+          background-image: -ms-linear-gradient(top, #ffa647, #e66400);
+          background-image: -o-linear-gradient(top, #ffa647, #e66400);
+          background-image: linear-gradient(to bottom, #ffa647, #e66400);
+          -webkit-border-radius: 4;
+          -moz-border-radius: 4;
+          border-radius: 4px;
+          text-shadow: 0px 0px 1px #380808;
+          font-family: Arial;
+          color: #ffffff;
+          font-size: 18px;
+          padding: 5px 15px 5px 15px;
+          text-decoration: none;
+        }
+
+        .btn:hover {
+          background: #ffc636;
+          background-image: -webkit-linear-gradient(top, #ffc636, #cc7408);
+          background-image: -moz-linear-gradient(top, #ffc636, #cc7408);
+          background-image: -ms-linear-gradient(top, #ffc636, #cc7408);
+          background-image: -o-linear-gradient(top, #ffc636, #cc7408);
+          background-image: linear-gradient(to bottom, #ffc636, #cc7408);
+          text-decoration: none;
+        }
       </style>
 
   </head>
@@ -81,12 +112,13 @@
       <div id="wrap">
           <div id="start">
             <form id="form">
-              <label>Page url</label>
-              <textarea id="pages"> http://jakavi.local/
-                http://jakavi.local/en/pv/about-pv/about-pv/
-                http://jakavi.local/en/mf/sub-section/mf-secondary-page/ </textarea>
-              <button type="submit">Screen Site</button>
+              <label>List of links for shooting</label>
+              <textarea id="pages" placeholder="paste links here separated by new line...">http://jakavi.local/
+http://jakavi.local/en/pv/about-pv/about-pv/
+http://jakavi.local/en/mf/sub-section/mf-secondary-page/</textarea>
+              <button class="btn" type="submit">Shoot pages</button>              
             </form>
+              <button class="btn right" id="shotThisPage">Screenshot this page</button>
           </div>               
       </div>
 

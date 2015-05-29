@@ -7,6 +7,9 @@ chrome.runtime.onMessage.addListener(function(request, sender, callback) {
     case 'start':
         startCapturing(request.url);
         break;
+    case 'thispage':
+        screenLink(request.tab);
+        break;
     case 'capturePage':
         capturePage(request, sender, callback);
         return true;
@@ -24,9 +27,8 @@ function startCapturing(links) {
     linksList = links;
     createTab(linksList[0]);
 
-    chrome.webNavigation.onCompleted.addListener(function(data){
-        console.log(data.tabId, data.url);
-        /*  If loaded needed page */
+    chrome.webNavigation.onCompleted.addListener(function(data){        
+        /*  If loaded needed page start to shoot */
         if (currentTab && data.tabId == currentTab.id && data.url == currentTab.url && !shooting) {
            screenLink(currentTab);
         }
@@ -38,13 +40,14 @@ function startCapturing(links) {
  * Proceed capturing process
  */
  function proceedCapturing() {
-    console.log('proceedCapturing ', currentTab);
+    
     shooting = false;
     chrome.tabs.remove(currentTab.id);
     currentIndex++;
+
     if (currentIndex < linksList.length) {
+        // The process of shooting will start on loading the content
         createTab(linksList[currentIndex]);
-        //screenLink(linksList[currentIndex]);
     } else {
         console.log('DONE');
         currentIndex = 0;
@@ -63,14 +66,12 @@ function createTab(link) {
  */ 
 function screenLink(tab) {
     shooting = true;
- // chrome.tabs.create({url: link}, function(tab){
+ 
     chrome.tabs.update(tab.id, {active: true}, function(){
         chrome.tabs.executeScript(tab.id, {file: 'page.js'}, function() {     
           sendScrollMessage(tab);
         });
     });
-  
- // });
 }
 
 
@@ -91,8 +92,6 @@ function sendScrollMessage(tab) {
  */
 function capturePage(data, sender, callback) {
     var canvas;
-
-    // $('#bar').get(0).style.width = parseInt(data.complete * 100, 10) + '%';
 
     // Get window.devicePixelRatio from the page, not the popup
     var scale = data.devicePixelRatio && data.devicePixelRatio !== 1 ?
@@ -190,7 +189,7 @@ function saveImage(tabId) {
             url: 'filesystem:chrome-extension://' + chrome.i18n.getMessage('@@extension_id') + '/temporary/' + name,
             filename: name
         }, function(){
-            proceedCapturing();
+            proceedCapturing(); // proceed to the next link if exist
         });
         
         

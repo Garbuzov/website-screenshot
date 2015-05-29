@@ -52,3 +52,11 @@ $('#form').submit(function(event){
 
     event.preventDefault();
 })
+
+$('#shotThisPage').click(function(){
+    chrome.tabs.getSelected(null, function(tab) {
+      var links = [];
+      links.push(tab.url);
+      chrome.runtime.sendMessage({"msg": "thispage", "tab" : tab});
+    })
+})
