@@ -1,6 +1,6 @@
 /* Variables for working */
 var screenshot, contentURL = '';
-var linksList = [], currentIndex = 0;
+var linksList = [], currentIndex = 0, currentTab, shooting = false;
 
 chrome.runtime.onMessage.addListener(function(request, sender, callback) {
   switch(request.msg) {
@@ -22,7 +22,15 @@ chrome.runtime.onMessage.addListener(function(request, sender, callback) {
  */
 function startCapturing(links) {
     linksList = links;
-    screenLink(linksList[0]);
+    createTab(linksList[0]);
+
+    chrome.webNavigation.onCompleted.addListener(function(data){
+        console.log(data.tabId, data.url);
+        /*  If loaded needed page */
+        if (currentTab && data.tabId == currentTab.id && data.url == currentTab.url && !shooting) {
+           screenLink(currentTab);
+        }
+    });
 }
 
 
@@ -30,25 +38,39 @@ function startCapturing(links) {
  * Proceed capturing process
  */
  function proceedCapturing() {
-
+    console.log('proceedCapturing ', currentTab);
+    shooting = false;
+    chrome.tabs.remove(currentTab.id);
     currentIndex++;
-    console.log(currentIndex, linksList);
     if (currentIndex < linksList.length) {
-        screenLink(linksList[currentIndex]);
+        createTab(linksList[currentIndex]);
+        //screenLink(linksList[currentIndex]);
     } else {
         console.log('DONE');
+        currentIndex = 0;
+        currentTab = false;
     }
  }
+
+function createTab(link) {
+    chrome.tabs.create({url: link}, function(tab){
+        currentTab = tab;
+    });
+}
 
 /**
  * Screen Link Task
  */ 
-function screenLink(link) {
-  chrome.tabs.create({url: link}, function(tab){
-    chrome.tabs.executeScript(tab.id, {file: 'page.js'}, function() {     
-      sendScrollMessage(tab);
+function screenLink(tab) {
+    shooting = true;
+ // chrome.tabs.create({url: link}, function(tab){
+    chrome.tabs.update(tab.id, {active: true}, function(){
+        chrome.tabs.executeScript(tab.id, {file: 'page.js'}, function() {     
+          sendScrollMessage(tab);
+        });
     });
-  });
+  
+ // });
 }
 
 
@@ -167,9 +189,11 @@ function saveImage(tabId) {
         chrome.downloads.download({
             url: 'filesystem:chrome-extension://' + chrome.i18n.getMessage('@@extension_id') + '/temporary/' + name,
             filename: name
+        }, function(){
+            proceedCapturing();
         });
-        chrome.tabs.remove(tabId);
-        proceedCapturing();
+        
+        
     }
 
     function errorHandler() {
