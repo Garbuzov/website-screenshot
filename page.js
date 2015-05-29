@@ -4,8 +4,6 @@ function onMessage(request, sender, callback) {
     if (request.msg === 'scrollPage') {
         getPositions(callback);
         return true;
-    } else if (request.msg == 'logMessage') {
-        console.log('[POPUP LOG]', request.data);
     } else {
         console.error('Unknown message received from background: ' + request.msg);
     }
@@ -20,6 +18,7 @@ function max(nums) {
     return Math.max.apply(Math, nums.filter(function(x) { return x; }));
 }
 
+/* Scrolls ans captures images */
 function getPositions(callback) {
     var body = document.body,
         widths = [
@@ -78,8 +77,6 @@ function getPositions(callback) {
         window.scrollTo(originalX, originalY);
     }
 
-
-
     (function processArrangements() {
         if (!arrangements.length) {
             cleanUp();
@@ -109,7 +106,6 @@ function getPositions(callback) {
         window.setTimeout(function() {
             // In case the below callback never returns, cleanup
             var cleanUpTimeout = window.setTimeout(cleanUp, 1250);
-
 
             chrome.runtime.sendMessage(data, function(captured) {
 

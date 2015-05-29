@@ -1,21 +1,47 @@
+/* Variables for working */
+var screenshot, contentURL = '';
+var linksList = [], currentIndex = 0;
+
 chrome.runtime.onMessage.addListener(function(request, sender, callback) {
-  console.log(request.msg);
-  if (request.msg == 'loadPage') {
-    request.url.forEach(function(link){
-      screenLink(link);
-    });
-    callback(); 
-  } else if (request.msg === 'capturePage') {
-    capturePage(request, sender, callback);
-    return true;
-  } else if (request.msg == 'ready') {
-    console.log('Done');
-  }
-  
+  switch(request.msg) {
+    case 'start':
+        startCapturing(request.url);
+        break;
+    case 'capturePage':
+        capturePage(request, sender, callback);
+        return true;
+        break;
+    case 'ready':
+        console.log('ready');
+        break;      
+    }
 });
 
 /**
- * Screen Link
+ * Start capturing process
+ */
+function startCapturing(links) {
+    linksList = links;
+    screenLink(linksList[0]);
+}
+
+
+/**
+ * Proceed capturing process
+ */
+ function proceedCapturing() {
+
+    currentIndex++;
+    console.log(currentIndex, linksList);
+    if (currentIndex < linksList.length) {
+        screenLink(linksList[currentIndex]);
+    } else {
+        console.log('DONE');
+    }
+ }
+
+/**
+ * Screen Link Task
  */ 
 function screenLink(link) {
   chrome.tabs.create({url: link}, function(tab){
@@ -25,26 +51,23 @@ function screenLink(link) {
   });
 }
 
-var screenshot, contentURL = '';
-
 
 /**
- * 
+ * Send message for scrolling
  */
 function sendScrollMessage(tab) {
   contentURL = tab.url;
   screenshot = {};
   
   chrome.tabs.sendMessage(tab.id, {msg: 'scrollPage'}, function() {
-    
-    openPage();    
+    saveImage(tab.id);    
   });
 }
 
 /**
  * Capture page
  */
- function capturePage(data, sender, callback) {
+function capturePage(data, sender, callback) {
     var canvas;
 
     // $('#bar').get(0).style.width = parseInt(data.complete * 100, 10) + '%';
@@ -84,28 +107,22 @@ function sendScrollMessage(tab) {
 
     // sendLogMessage(data);
 
-    /*chrome.tabs.query({'active': true}, function(tab) {*/
-      chrome.tabs.captureVisibleTab( null, {format: 'png', quality: 100}, function(dataURI) {
-            if (dataURI) {
-              var image = new Image();
-              image.onload = function() {
-                // sendLogMessage('img dims: ' + image.width + ', ' + image.height);
-
-                screenshot.ctx.drawImage(image, data.x, data.y);
-                
-                callback(true);
-              };
-              image.src = dataURI;              
-            }
-        });
-  //});
-
+    chrome.tabs.captureVisibleTab( null, {format: 'png', quality: 100}, function(dataURI) {
+        if (dataURI) {
+          var image = new Image();
+          image.onload = function() {
+            screenshot.ctx.drawImage(image, data.x, data.y);            
+            callback(true);
+          };
+          image.src = dataURI;              
+        }
+    });
 }
 
 /**
- *
+ * Save captured image
 */
-function openPage() {
+function saveImage(tabId) {
     // standard dataURI can be too big, let's blob instead
     // http://code.google.com/p/chromium/issues/detail?id=69227#c27
 
@@ -140,11 +157,10 @@ function openPage() {
             .replace(/-+/g, '-')
             .replace(/^[_\-]+/, '')
             .replace(/[_\-]+$/, '');
-        name = '-' + name;
+        name += '.png';
     } else {
         name = '';
     }
-    name = name + '.png';
 
     function onwriteend(e) {
 
@@ -152,8 +168,8 @@ function openPage() {
             url: 'filesystem:chrome-extension://' + chrome.i18n.getMessage('@@extension_id') + '/temporary/' + name,
             filename: name
         });
-
-        console.log(e);
+        chrome.tabs.remove(tabId);
+        proceedCapturing();
     }
 
     function errorHandler() {
